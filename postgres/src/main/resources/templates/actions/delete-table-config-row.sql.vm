@@ -1,0 +1,1 @@
+delete from jd_table_config where table_name = '$table';

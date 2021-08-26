@@ -1,0 +1,4 @@
+create trigger jd_after_${table}_inserted
+    after insert on $table
+    referencing new table as new_table
+    for each statement execute function jd_after_${table}_inserted_func();

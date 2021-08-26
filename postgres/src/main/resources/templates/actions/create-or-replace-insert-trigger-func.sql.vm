@@ -1,0 +1,12 @@
+#set ( $func = "#[[$func$]]#")
+
+create or replace function jd_after_${table}_inserted_func()
+    returns trigger
+    language plpgsql
+as $func
+BEGIN
+    insert into jd_dml_event(stmt, tbl, data)
+    select 'insert', '$table',  jsonb_strip_nulls(to_jsonb(new_table.*)) as data
+    from new_table;
+    return null;
+END $func;

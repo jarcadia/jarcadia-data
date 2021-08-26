@@ -1,0 +1,19 @@
+#set ( $func = "#[[$func$]]#")
+
+create or replace function jd_update_diff_$table()(old record, new record)
+    returns table($pk.name $pk.type, field text, before jsonb, after jsonb)
+    language plpgsql
+as $func
+BEGIN
+    $pk.name := new.$pk.name;
+#foreach ($col in $columns)
+    if (old.$col.name #if($col.isNullable)is distinct from#else<>#end new.$col.name) then
+        raise info 'Detected change to $table.$col.name for record %: % -> %', new.$pk.name, old.$col.name, new.$col.name;
+        field := '$col.name';
+        before := to_jsonb(old.$col.name);
+        after := to_jsonb(new.$col.name);
+        return next;
+    end if;
+#end
+    return;
+END $func;

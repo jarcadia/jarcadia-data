@@ -1,0 +1,4 @@
+create trigger jd_after_${table}_updated
+    after update on $table
+    referencing old table as old_table new table as new_table
+    for each statement execute function jd_after_${table}_updated_func();

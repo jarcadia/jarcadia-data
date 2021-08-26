@@ -1,0 +1,22 @@
+#set ( $func = "#[[$func$]]#")
+
+create table jd_dml_event (
+    event_id bigserial primary key,
+    stmt text not null,
+    tbl text not null,
+    data jsonb not null
+);
+
+create function jd_after_dml_event_inserted_func()
+    returns trigger
+    language plpgsql
+as $func
+BEGIN
+    raise info 'Firing dml event % % (%)): %', new.stmt, new.tbl, new.event_id, new.data;
+    PERFORM pg_notify('retask', concat(new.event_id, ':', new.stmt, ':', new.tbl, ':', new.data));
+    return null;
+END $func;
+
+create trigger jd_after_dml_event_inserted
+    after insert on jd_dml_event
+    for each row execute function jd_after_dml_event_inserted_func();

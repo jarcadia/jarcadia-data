@@ -1,0 +1,16 @@
+create table jd_config (
+    id boolean primary key default true,
+    schema_version integer not null default 0
+    constraint jd_config_single_row CHECK (id)
+);
+insert into jd_config default values;
+
+create table jd_table_config (
+    table_name text primary key,
+    ignored_cols text[] not null default '{}',
+    watch_insert boolean not null default true,
+    watch_update boolean not null default true,
+    watch_delete boolean not null default true,
+    fire_dml_events boolean not null default true,
+    rtr_cols text[] not null default '{}'
+);

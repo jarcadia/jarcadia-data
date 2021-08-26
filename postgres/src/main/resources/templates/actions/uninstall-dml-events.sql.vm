@@ -1,0 +1,2 @@
+drop table jd_dml_event;
+drop function jd_after_dml_event_inserted_func;

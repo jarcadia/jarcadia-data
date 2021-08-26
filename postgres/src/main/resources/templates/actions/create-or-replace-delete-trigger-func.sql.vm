@@ -1,0 +1,12 @@
+#set ( $func = "#[[$func$]]#")
+
+create or replace function jd_after_${table}_deleted_func()
+    returns trigger
+    language plpgsql
+as $func
+BEGIN
+    insert into jd_dml_event(stmt, tbl, data)
+    select 'delete', '$table', jsonb_strip_nulls(to_jsonb(old_table.*)) as data
+    from old_table;
+    return null;
+END $func;

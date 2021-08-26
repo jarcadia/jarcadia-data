@@ -1,0 +1,13 @@
+create table jd_rtr (
+    room_id text primary key,
+    version integer not null default -1
+);
+
+create table jd_req (
+    room_id text not null,
+    version integer not null,
+    data jsonb not null,
+    primary key(room_id, version),
+    constraint fk_room foreign key(room_id) references jd_rtr(room_id) on delete cascade
+);
+

@@ -1,0 +1,4 @@
+create trigger jd_after_${table}_deleted
+    after delete on $table
+    referencing old table as old_table
+    for each statement execute function jd_after_${table}_deleted_func();

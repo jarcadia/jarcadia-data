@@ -1,0 +1,1 @@
+drop function jd_after_${table}_inserted_func();

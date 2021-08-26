@@ -1,0 +1,73 @@
+#set ( $func = "#[[$func$]]#")
+
+create table if not exists jd_rtr (
+    room_id text primary key,
+    version integer not null default -1
+);
+
+create table if not exists jd_rtq (
+    room_id text not null,
+    version integer not null,
+    data jsonb not null,
+    primary key(room_id, version),
+    constraint fk_room foreign key(room_id) references jd_rtr(room_id) on delete cascade
+);
+
+## After real_time_room inserted
+create or replace function jd_after_real_time_room_inserted_func()
+    returns trigger
+    language plpgsql
+as $func
+BEGIN
+    -- Create the version sequence for the inserted room
+    execute format('create sequence %s_ver_seq as BIGINT cache 25 owned by real_time_queue.version', new.id);
+    return null;
+END $func;
+create trigger after_real_time_room_inserted
+    after insert on jd_rtr
+    for each row execute function jd_after_real_time_room_inserted_func();
+
+## After real_time_room deleted
+create or replace function jd_after_real_time_room_deleted_func()
+    returns trigger
+    language plpgsql
+as $func
+BEGIN
+    -- Drop the version sequence for the deleted room
+    execute format('drop sequence %s_ver_seq', old.id);
+    return null;
+END $func;
+
+create trigger jd_after_real_time_room_deleted
+    after delete on jd_rtr
+    for each row execute function jd_after_real_time_room_deleted_func();
+
+## Before real_time_queue inserted
+create or replace function jd_before_real_time_queue_inserted_func()
+    returns trigger
+    language plpgsql
+as $func
+BEGIN
+    -- Assign next version
+    new.version := nextval(format('%s_ver_seq', new.room_id));
+    return new;
+END $func;
+create trigger before_real_time_queue_inserted
+    before insert on jd_rtq
+    for each row execute function jd_before_real_time_queue_inserted_func();
+
+## After real_time_queue inserted
+create or replace function jd_after_real_time_queue_inserted_func()
+    returns trigger
+    language plpgsql
+as $func
+BEGIN
+    update jd_rtr set version = new.version where room_id = new.room_id;
+
+    -- TODO Broadcast to listener
+    return null;
+END $func;
+
+create trigger jd_after_real_time_queue_inserted
+    after insert on jd_rtq
+    for each row execute function jd_after_real_time_queue_inserted_func();
