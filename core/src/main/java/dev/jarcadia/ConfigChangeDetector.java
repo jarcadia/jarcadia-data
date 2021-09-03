@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -195,7 +196,7 @@ class ConfigChangeDetector {
     }
 
     private static TableConfig empty(String table) {
-        return new TableConfig(table, new String[0],
+        return new TableConfig(table.toLowerCase(), new String[0],
                 false, false, false, false, new String[0]);
     }
 }

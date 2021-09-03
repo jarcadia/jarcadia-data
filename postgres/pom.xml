@@ -17,7 +17,7 @@
 	<dependencies>
 
 		<dependency>
-			<groupId>dev.retask</groupId>
+			<groupId>dev.jarcadia</groupId>
 			<artifactId>jarcadia-data-core</artifactId>
 			<version>0.0.1-SNAPSHOT</version>
 		</dependency>
@@ -36,8 +36,8 @@
 		</dependency>
 
 		<dependency>
-			<groupId>dev.retask</groupId>
-			<artifactId>retask</artifactId>
+			<groupId>dev.jarcadia</groupId>
+			<artifactId>retask-core</artifactId>
 			<version>0.0.1-SNAPSHOT</version>
 			<scope>provided</scope>
 		</dependency>

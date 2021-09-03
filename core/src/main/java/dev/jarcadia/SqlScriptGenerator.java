@@ -24,7 +24,7 @@ class SqlScriptGenerator {
 
     private VelocityEngine createEngine() {
         VelocityEngine velocity = new VelocityEngine();
-        velocity.setProperty("runtime.references.strict", "true");
+        velocity.setProperty("runtime.references.strict", true);
         velocity.setProperty("resource.loader", "class");
         velocity.setProperty("class.resource.loader.description", "Velocity Classpath Resource Loader");
         velocity.setProperty("class.resource.loader.class",

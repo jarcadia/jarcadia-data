@@ -48,12 +48,12 @@ public class JDPostgresListener implements Closeable, PGNotificationListener {
             throw new RuntimeException("Unable to connect to postgres", ex);
         }
 
-        logger.info("Starting jarcadia postgres listener");
+        logger.info("Starting jarcadia postgres listener for {}", listeningDataSource.getUrl());
         listenConn.addNotificationListener(this);
 
         try {
             Statement stmt = listenConn.createStatement();
-            stmt.execute("LISTEN jarcadia");
+            stmt.execute("LISTEN jd_channel");
             stmt.close();
         } catch (Throwable ex) {
             active.arriveAndDeregister();

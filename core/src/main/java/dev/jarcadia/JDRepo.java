@@ -10,6 +10,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 abstract class JDRepo {
 
@@ -44,7 +45,7 @@ abstract class JDRepo {
             boolean firesDmlEvents = rs.getBoolean("fire_dml_events");
             String[] rtrCols = (String[]) rs.getArray("rtr_cols").getArray();
 
-            return new TableConfig(table, ignoredCols, watchInsert, watchUpdate, watchDelete, firesDmlEvents, rtrCols);
+            return new TableConfig(table.toLowerCase(), ignoredCols, watchInsert, watchUpdate, watchDelete, firesDmlEvents, rtrCols);
         });
     }
 

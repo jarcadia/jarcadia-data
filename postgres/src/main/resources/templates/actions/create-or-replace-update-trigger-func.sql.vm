@@ -6,31 +6,34 @@ create or replace function jd_after_${table}_updated_func()
 as $func
     BEGIN
 
-    create temporary table temp_table ($pk.name $pk.type, field text, before jsonb, after jsonb) on commit drop;
-        insert into temp_table
-        select (jd_diff_$table(ot, nt)).*
+    create temporary table jd_temp_${table}_diff ($pk.name $pk.type, field text, before jsonb, after jsonb) on commit drop;
+        insert into jd_temp_${table}_diff
+        select (jd_update_diff_$table(ot, nt)).*
         from old_table ot join new_table nt on ot.$pk.name = nt.$pk.name;
 
-#if ($firesDmlEvents)
+#if ($fireDmlEvents)
     insert into jd_dml_event(stmt, tbl, data)
-    select 'update', '$table', jsonb_build_object('$pk.name', chg.$pk.name) || chg.fields
+    select 'update', '$table', jsonb_build_object('$pk.name', diff.$pk.name) || diff.fields
     from (
-        select chg.$pk.name, jsonb_object_agg(chg.field, jsonb_build_array(chg.before, chg.after)) as fields
-        from temp_table chg
-        group by chg.$pk.name
-    ) as chg join new_table on chg.$pk.name = new_table.$pk.name;
+        select diff.$pk.name, jsonb_object_agg(diff.field, jsonb_build_array(diff.before, diff.after)) as fields
+        from jd_temp_${table}_diff diff
+        group by diff.$pk.name
+    ) as diff join new_table on diff.$pk.name = new_table.$pk.name;
 #end
 
-#if ($firesRtrEvents)
-    with agg as (
+#if ($fireRtrEvents)
+    with diff_agg as (
         select $pk.name, jsonb_object_agg(field, after) as fields
-        from temp_table
+        from jd_temp_${table}_diff
         where field in (#foreach($col in $rtrColumns)'$col.name'#if( $foreach.hasNext ),#end#end)
         group by $pk.name)
     insert into jd_rtq(room_id, data)
     select link.room_id, jsonb_object_agg(link.emp_id, fields)
-    from ${table}_rtd_link link join agg on link.$pk.name = agg.$pk.name
+    from ${table}_rtd_link link join diff_agg on link.$pk.name = diff_agg.$pk.name
     group by link.room_id;
 #end
+
+    drop table jd_temp_${table}_diff;
+
     return null;
-    END $func;
+END $func;

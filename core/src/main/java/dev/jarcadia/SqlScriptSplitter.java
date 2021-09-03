@@ -1,6 +1,7 @@
 package dev.jarcadia;
 
 import java.util.Iterator;
+import java.util.NoSuchElementException;
 
 class SqlScriptSplitter implements Iterable<String> {
 
@@ -24,7 +25,7 @@ class SqlScriptSplitter implements Iterable<String> {
 
         public StatementIterator(String script) {
             this.script = script;
-            this.tokenizer = new Tokenizer(script);
+            this.tokenizer = new TokenMerger(script, new Tokenizer(script));
             advance();
         }
 
@@ -50,13 +51,77 @@ class SqlScriptSplitter implements Iterable<String> {
                         "LOOP".equalsIgnoreCase(token.value()) ||
                         "IF".equalsIgnoreCase(token.value())) {
                     depth++;
-                } else if ("END".equalsIgnoreCase(token.value())) {
+                } else if ("END IF".equalsIgnoreCase(token.value()) ||
+                        "END LOOP".equalsIgnoreCase(token.value()) ||
+                        "END".equalsIgnoreCase(token.value())) {
                     depth--;
                 } else if (";".equals(token.value()) && depth == 0) {
                     end = token.end();
                     return;
                 }
             }
+        }
+    }
+
+    protected static class TokenMerger implements Iterator<Token> {
+
+        private final String script;
+        private final Iterator<Token> tokenizer;
+        private Token peeked;
+
+        public TokenMerger(String script, Iterator<Token> tokenizer) {
+            this.script = script;
+            this.tokenizer = tokenizer;
+        }
+
+        @Override
+        public boolean hasNext() {
+            return peeked != null || tokenizer.hasNext();
+        }
+
+        @Override
+        public Token next() {
+
+            Token next = nextHelper();
+            if ("END".equalsIgnoreCase(next.value())) {
+                if (tokenizer.hasNext()) {
+                    Token following = tokenizer.next();
+
+                    if ("LOOP".equalsIgnoreCase(following.value()) ||
+                            "IF".equalsIgnoreCase(following.value())) {
+
+                        int start = next.start();
+                        int end = following.end();
+                        Token merged = new Token(script.substring(start, end).trim(), start, end);
+                        return merged;
+                    } else {
+                        // Peeked ahead but didn't use the token so save it for later
+                        peeked = following;
+                        return next;
+                    }
+                } else {
+                    // No token available for peeking so just return next
+                    return next;
+                }
+            } else {
+                return next;
+            }
+        }
+
+        private Token nextHelper() {
+
+            // If Token was peeked but unused, clear and return it as the next Token
+            if (peeked != null) {
+                Token temp = peeked;
+                peeked = null;
+                return temp;
+            } else {
+                return tokenizer.next();
+            }
+        }
+
+        private void advance() {
+
         }
     }
 

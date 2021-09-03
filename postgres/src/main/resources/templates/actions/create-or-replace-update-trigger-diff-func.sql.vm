@@ -1,6 +1,6 @@
 #set ( $func = "#[[$func$]]#")
 
-create or replace function jd_update_diff_$table()(old record, new record)
+create or replace function jd_update_diff_$table(old record, new record)
     returns table($pk.name $pk.type, field text, before jsonb, after jsonb)
     language plpgsql
 as $func

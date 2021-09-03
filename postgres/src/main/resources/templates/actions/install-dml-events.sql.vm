@@ -13,7 +13,7 @@ create function jd_after_dml_event_inserted_func()
 as $func
 BEGIN
     raise info 'Firing dml event % % (%)): %', new.stmt, new.tbl, new.event_id, new.data;
-    PERFORM pg_notify('retask', concat(new.event_id, ':', new.stmt, ':', new.tbl, ':', new.data));
+    PERFORM pg_notify('jd_channel', concat(new.event_id, ':', new.stmt, ':', new.tbl, ':', new.data));
     return null;
 END $func;
 

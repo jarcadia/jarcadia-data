@@ -48,6 +48,6 @@ public class JDTableConfig {
     }
 
     protected TableConfig buildTableConfig() {
-        return new TableConfig(table, ignore, watchInserts, watchUpdates, watchDeletes, fireDmlEvents, rtrColumns);
+        return new TableConfig(table.toLowerCase(), ignore, watchInserts, watchUpdates, watchDeletes, fireDmlEvents, rtrColumns);
     }
 }
